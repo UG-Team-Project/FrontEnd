@@ -38,13 +38,25 @@
                                 </v-tooltip>
                             </v-toolbar>
                             <v-card-text>
-                                <v-form>
+                                <v-form
+                                @submit="checkForm"
+                                >
+                                    <v-alert
+                                            v-if="areInvalidCredentials"
+                                            ref="errorLogin"
+                                            border="top"
+                                            dark
+                                            color="red lighten-1"
+                                    >
+                                        Invalid login or password.
+                                    </v-alert>
                                     <v-text-field
                                             v-model="input.username"
                                             label="Login"
                                             name="username"
                                             prepend-icon="person"
                                             type="text"
+                                            required
                                     />
 
                                     <v-text-field
@@ -55,11 +67,11 @@
                                             prepend-icon="lock"
                                             type="password"
                                     />
+                                    <v-btn  type="submit" color="primary">Login</v-btn>
                                 </v-form>
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer/>
-                                <v-btn color="primary" v-on:click="login()">Login</v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-col>
@@ -72,10 +84,9 @@
 <script>
 export default {
     name: 'Login',
-    username: '',
-    password: '',
     data () {
         return {
+            areInvalidCredentials: '',
             input: {
                 username: '',
                 password: ''
@@ -83,15 +94,15 @@ export default {
         };
     },
     methods: {
-        login () {
-            const username = this.input.username;
-            const password = this.input.password;
-            if (username === 'admin' && password === 'admin') {
+        checkForm: function (evt) {
+            if (this.input.username === 'admin' && this.input.password === 'admin') {
+                console.log('asdfasdf');
                 this.$store.getters.isLogged = true;
                 this.$router.replace({ name: 'dashboard-index' });
             } else {
-                return;
+                this.areInvalidCredentials = true;
             }
+            evt.preventDefault();
         }
     },
     props: {
