@@ -1,15 +1,14 @@
 import Vue from 'vue';
 
-// Components
 import './components';
-
-// Plugins
+// Material icons
 import './plugins';
-import router from '@/plugins/routes';
+import VuetifyDialog from 'vuetify-dialog'
+import 'vuetify-dialog/dist/vuetify-dialog.css'
+import router from '@/router/index';
 
-import { sync } from 'vuex-router-sync';
+import {sync} from 'vuex-router-sync';
 
-// Application imports
 import App from './App';
 
 import store from '@/store';
@@ -19,9 +18,13 @@ import vuetify from '@/plugins/vuetify';
 sync(store, router);
 
 Vue.config.productionTip = false;
-
+Vue.use(VuetifyDialog, {
+    context: {
+        vuetify
+    }
+});
 /* eslint-disable no-new */
-new Vue({
+export default new Vue({
     router,
     store,
     vuetify,

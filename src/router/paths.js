@@ -1,35 +1,24 @@
-/**
- * Define all of your application routes here
- * for more information on routes, see the
- * official documentation https://router.vuejs.org/en/
- */
-// export default [
-//     {
-//         path: '',
-//         // Relative to /src/views
-//         data: {
-//             permissions: {
-//                 only: ['ADMIN']
-//             }
-//         },
-//         view: 'Dashboard'
-//     },
-//     {
-//         path: '/user-profile',
-//         name: 'User Profile',
-//         view: 'UserProfile'
-//     },
-//     {
-//         path: '/table-list',
-//         name: 'Table List',
-//         view: 'TableList'
-//     },
-//     {
-//         path: '/maps',
-//         view: 'Maps'
-//     },
-//     {
-//         path: '/notifications',
-//         view: 'Notifications'
-//     }
-// ];
+import Dashboard from '@/views/Dashboard';
+import UserProfile from '@/views/UserProfile';
+import TableList from '@/views/TableList';
+import Login from '@/views/Login';
+import Maps from '@/views/Maps';
+
+
+const routes = [
+    {
+        name: 'dashboard-index',
+        path: '/dashboard',
+        component: Dashboard
+    },
+    { name: 'asd1', path: '/dashboard/user-profile', component: UserProfile },
+    { name: 'asd2', path: '/dashboard/table-list', component: TableList },
+    { name: 'asd3', path: '/dashboard/maps', component: Maps },
+    {
+        path: '/login',
+        name: 'Login',
+        component: Login
+    }
+];
+
+export default routes;

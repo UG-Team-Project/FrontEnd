@@ -1,0 +1,41 @@
+.office-room {
+  border: 15px solid #cfcfcf;
+  width: 1000px;
+  height: 1000px;
+  position: relative;
+
+  .svg-workspace {
+    position: absolute;
+
+    + .north {
+      // Default is north
+    }
+
+    + .west {
+      transform: rotate(270deg);
+    }
+
+    + .east {
+      transform: rotate(90deg);
+    }
+
+    + .south {
+      transform: rotate(180deg);
+    }
+  }
+
+  svg {
+    padding: 10px;
+  }
+
+  .svg-workspace {
+    width: 100px;
+    height: 100px;
+  }
+
+  svg:hover {
+    cursor: pointer;
+    padding: 10px;
+    background-color: #eeeeee;
+  }
+}
