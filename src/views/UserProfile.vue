@@ -1,150 +1,136 @@
 <template>
-  <v-container
-    fill-height
-    fluid
-    grid-list-xl>
-    <v-layout
-      justify-center
-      wrap
-    >
-      <v-flex
-        xs12
-        md8
-      >
-        <material-card
-          color="green"
-          title="Edit Profile"
-          text="Complete your profile"
+    <v-app>
+        <Drawer/>
+        <v-card
+                class="col-10 mx-auto"
         >
-          <v-form>
-            <v-container py-0>
-              <v-layout wrap>
-                <v-flex
-                  xs12
-                  md4
+            <v-container
+                    fill-height
+                    fluid
+                    grid-list-xl>
+                <v-layout
+                        wrap
                 >
-                  <v-text-field
-                    label="Company (disabled)"
-                    disabled/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md4
-                >
-                  <v-text-field
-                    class="purple-input"
-                    label="User Name"
-                  />
-                </v-flex>
-                <v-flex
-                  xs12
-                  md4
-                >
-                  <v-text-field
-                    label="Email Address"
-                    class="purple-input"/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md6
-                >
-                  <v-text-field
-                    label="First Name"
-                    class="purple-input"/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md6
-                >
-                  <v-text-field
-                    label="Last Name"
-                    class="purple-input"/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md12
-                >
-                  <v-text-field
-                    label="Adress"
-                    class="purple-input"/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md4>
-                  <v-text-field
-                    label="City"
-                    class="purple-input"/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md4>
-                  <v-text-field
-                    label="Country"
-                    class="purple-input"/>
-                </v-flex>
-                <v-flex
-                  xs12
-                  md4>
-                  <v-text-field
-                    class="purple-input"
-                    label="Postal Code"
-                    type="number"/>
-                </v-flex>
-                <v-flex xs12>
-                  <v-textarea
-                    class="purple-input"
-                    label="About Me"
-                    value="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-                  />
-                </v-flex>
-                <v-flex
-                  xs12
-                  text-xs-right
-                >
-                  <v-btn
-                    class="mx-0 font-weight-light"
-                    color="success"
-                  >
-                    Update Profile
-                  </v-btn>
-                </v-flex>
-              </v-layout>
+                    <v-flex
+                            xs12
+                            md8
+                    >
+                        <v-form @submit.prevent="saveDetails">
+                            <v-container py-0>
+                                <v-layout wrap>
+                                    <v-flex
+                                            xs12
+                                            md4
+                                    >
+                                        <v-text-field
+                                                class="purple-input"
+                                                label="Username"
+                                                v-model="input.username"
+                                                disabled
+                                        />
+                                    </v-flex>
+                                    <v-flex
+                                            xs12
+                                            md4
+                                    >
+                                        <v-text-field
+                                                label="Email Address"
+                                                v-model="input.email"
+                                        />
+                                    </v-flex>
+                                    <v-flex
+                                            xs12
+                                            md6
+                                    >
+                                        <v-text-field
+                                                label="First Name"
+                                                v-model="input.firstName"
+                                                class="purple-input"/>
+                                    </v-flex>
+                                    <v-flex
+                                            xs12
+                                            md6
+                                    >
+                                        <v-text-field
+                                                label="Last Name"
+                                                v-model="input.lastName"
+                                                class="purple-input"/>
+                                    </v-flex>
+                                    <v-flex
+                                            xs12
+                                            md12
+                                    >
+                                        <v-text-field
+                                                label="Country"
+                                                v-model="input.country"
+                                                class="purple-input"/>
+                                    </v-flex>
+                                    <v-flex
+                                            xs5
+                                            md5>
+                                        <v-btn
+                                                type="submit"
+                                                class="blue text--white text-uppercase"
+                                        >
+                                            Save
+                                        </v-btn>
+                                    </v-flex>
+                                </v-layout>
+                            </v-container>
+                        </v-form>
+                    </v-flex>
+                </v-layout>
             </v-container>
-          </v-form>
-        </material-card>
-      </v-flex>
-      <v-flex
-        xs12
-        md4
-      >
-        <material-card class="v-card-profile">
-          <v-avatar
-            slot="offset"
-            class="mx-auto d-block"
-            size="130"
-          >
-            <img
-              src="#"
-            >
-          </v-avatar>
-          <v-card-text class="text-xs-center">
-            <h6 class="category text-gray font-weight-thin mb-3">CEO / CO-FOUNDER</h6>
-            <h4 class="card-title font-weight-light">Alec Thompson</h4>
-            <p class="card-description font-weight-light">Don't be scared of the truth because we need to restart the human foundation in truth And I love you like Kanye loves Kanye I love Rick Owens’ bed design but the back is...</p>
-            <v-btn
-              color="success"
-              rounded
-              class="font-weight-light"
-            >Follow</v-btn>
-          </v-card-text>
-        </material-card>
-      </v-flex>
-    </v-layout>
-  </v-container>
-</template>
+        </v-card>
 
+      <v-snackbar
+              v-model="gotResponse"
+              :timeout="3000"
+              color="success"
+              multi-line="true"
+      >
+      Data saved successfully
+        <v-btn
+                color="green"
+                text
+                @click="gotResponse = false"
+        >
+          Close
+        </v-btn>
+      </v-snackbar>
+    </v-app>
+</template>
 <script>
-export default {
-    //
-};
+    import Drawer from '../components/core/Drawer';
+
+    export default {
+      data() {
+        return {
+          input: {
+            username: 'asdasd',
+            email: '',
+            firstName: '',
+            lastName: '',
+            country: '',
+          },
+          gotResponse: false
+        }
+      },
+        components: {
+            Drawer
+        },
+        created() {
+          const details = this.$store.getters.userDetails;
+          this.input.username = details.username;
+          this.input.email = details.email;
+          this.input.firstName = details.firstName;
+          this.input.lastName = details.lastName;
+          this.input.country = details.country;
+        },
+        methods: {
+          saveDetails: function () {
+            this.gotResponse = true;
+          }
+        }
+    };
 </script>

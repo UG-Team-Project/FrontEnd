@@ -18,43 +18,19 @@
                             <v-toolbar
                                     color="primary"
                                     dark
-                                    flat
                             >
                                 <v-toolbar-title>Login form</v-toolbar-title>
                                 <v-spacer/>
-                                <v-tooltip bottom>
-                                    <template v-slot:activator="{ on }">
-                                        <v-btn
-                                                :href="source"
-                                                icon
-                                                large
-                                                target="_blank"
-                                                v-on="on"
-                                        >
-                                            <v-icon>mdi-code-tags</v-icon>
-                                        </v-btn>
-                                    </template>
-                                    <span>Source</span>
-                                </v-tooltip>
                             </v-toolbar>
                             <v-card-text>
                                 <v-form
-                                @submit="checkForm"
+                                        @submit="checkForm"
                                 >
-                                    <v-alert
-                                            v-if="areInvalidCredentials"
-                                            ref="errorLogin"
-                                            border="top"
-                                            dark
-                                            color="red lighten-1"
-                                    >
-                                        Invalid login or password.
-                                    </v-alert>
                                     <v-text-field
                                             v-model="input.username"
                                             label="Login"
                                             name="username"
-                                            prepend-icon="person"
+                                            prepend-icon="mdi-account"
                                             type="text"
                                             required
                                     />
@@ -64,14 +40,24 @@
                                             id="password"
                                             label="Password"
                                             name="password"
-                                            prepend-icon="lock"
+                                            prepend-icon="mdi-lock"
                                             type="password"
+                                            required
                                     />
-                                    <v-btn  type="submit" color="primary">Login</v-btn>
+                                    <v-btn type="submit" class="blue" color="primary">Login</v-btn>
                                 </v-form>
                             </v-card-text>
                             <v-card-actions>
-                                <v-spacer/>
+                                <v-alert
+                                        v-if="areInvalidCredentials"
+                                        ref="errorLogin"
+                                        border="top"
+                                        dark
+                                        color="red lighten-1"
+                                        width="100%"
+                                >
+                                    Invalid login or password.
+                                </v-alert>
                             </v-card-actions>
                         </v-card>
                     </v-col>
@@ -82,31 +68,36 @@
 </template>
 
 <script>
-export default {
-    name: 'Login',
-    data () {
-        return {
-            areInvalidCredentials: '',
-            input: {
-                username: '',
-                password: ''
+    export default {
+        name: 'Login',
+        data() {
+            return {
+                areInvalidCredentials: '',
+                input: {
+                    username: '',
+                    password: ''
+                }
+            };
+        },
+        methods: {
+            checkForm: function (evt) {
+                this.axios.post(this.$store.getters.loginRoute, {
+                    "username": this.input.username,
+                    "password": this.input.password
+                }).then((response => {
+                    if (response.status !== 200 || this.input.username !== 'pchuck') {
+                        throw "Invalid Credentials";
+                    }
+                    this.$store.commit('login', response.data);
+                    this.$router.push({name: 'dashboard-index'});
+                })).catch(() => {
+                    this.areInvalidCredentials = true;
+                });
+                evt.preventDefault();
             }
-        };
-    },
-    methods: {
-        checkForm: function (evt) {
-            if (this.input.username === 'admin' && this.input.password === 'admin') {
-                console.log('asdfasdf');
-                this.$store.getters.isLogged = true;
-                this.$router.replace({ name: 'dashboard-index' });
-            } else {
-                this.areInvalidCredentials = true;
-            }
-            evt.preventDefault();
+        },
+        props: {
+            source: String
         }
-    },
-    props: {
-        source: String
-    }
-};
+    };
 </script>

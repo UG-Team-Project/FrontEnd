@@ -47,7 +47,6 @@
       >
         <material-card
           color="green"
-          flat
           full-width
           title="Table on Plain Background"
           text="Here is a subtitle for this table"
