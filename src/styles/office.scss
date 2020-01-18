@@ -3,9 +3,20 @@
   width: 1000px;
   height: 1000px;
   position: relative;
+  box-sizing: content-box;
 
   .svg-workspace {
+    box-sizing: border-box;
     position: absolute;
+    padding: 10px;
+
+    &:hover {
+      cursor: pointer;
+      padding: 10px;
+      background-color: #bee5ff;
+      filter: blur(1px);
+    }
+
 
     + .north {
       // Default is north
@@ -22,20 +33,5 @@
     + .south {
       transform: rotate(180deg);
     }
-  }
-
-  svg {
-    padding: 10px;
-  }
-
-  .svg-workspace {
-    width: 100px;
-    height: 100px;
-  }
-
-  svg:hover {
-    cursor: pointer;
-    padding: 10px;
-    background-color: #eeeeee;
   }
 }

@@ -18,14 +18,13 @@
                             <v-toolbar
                                     color="primary"
                                     dark
-                                    flat
                             >
                                 <v-toolbar-title>Login form</v-toolbar-title>
                                 <v-spacer/>
                             </v-toolbar>
                             <v-card-text>
                                 <v-form
-                                @submit="checkForm"
+                                        @submit="checkForm"
                                 >
                                     <v-text-field
                                             v-model="input.username"
@@ -45,7 +44,7 @@
                                             type="password"
                                             required
                                     />
-                                    <v-btn  type="submit" color="primary">Login</v-btn>
+                                    <v-btn type="submit" class="blue" color="primary">Login</v-btn>
                                 </v-form>
                             </v-card-text>
                             <v-card-actions>
@@ -69,43 +68,36 @@
 </template>
 
 <script>
-export default {
-    name: 'Login',
-    data () {
-        return {
-            areInvalidCredentials: '',
-            input: {
-                username: '',
-                password: ''
-            }
-        };
-    },
-    methods: {
-        checkForm: function (evt) {
-            this.axios.post(this.$store.getters.loginRoute, {
-                "username": this.input.username,
-                "password": this.input.password
-            }).then((response => {
-                if (response.status !== 200) {
-                    throw "Invalid Credentials";
+    export default {
+        name: 'Login',
+        data() {
+            return {
+                areInvalidCredentials: '',
+                input: {
+                    username: '',
+                    password: ''
                 }
-                this.$store.commit('login', response.data.token);
-                this.$router.push({name: 'dashboard-index'});
-
-            })).catch(() => {
-                this.areInvalidCredentials = true;
-            });
-            // if (this.input.username === 'admin' && this.input.password === 'admin') {
-            //     this.$store.commit('login');
-            //     this.$router.replace({ name: 'dashboard-index' });
-            // } else {
-            //     this.areInvalidCredentials = true;
-            // }
-            evt.preventDefault();
+            };
+        },
+        methods: {
+            checkForm: function (evt) {
+                this.axios.post(this.$store.getters.loginRoute, {
+                    "username": this.input.username,
+                    "password": this.input.password
+                }).then((response => {
+                    if (response.status !== 200 || this.input.username !== 'pchuck') {
+                        throw "Invalid Credentials";
+                    }
+                    this.$store.commit('login', response.data);
+                    this.$router.push({name: 'dashboard-index'});
+                })).catch(() => {
+                    this.areInvalidCredentials = true;
+                });
+                evt.preventDefault();
+            }
+        },
+        props: {
+            source: String
         }
-    },
-    props: {
-        source: String
-    }
-};
+    };
 </script>

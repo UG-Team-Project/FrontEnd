@@ -43,21 +43,21 @@
                     icon: 'mdi-account',
                     text: 'User Profile'
                 },
-                {
-                    to: '/dashboard/table-list',
-                    icon: 'mdi-clipboard-outline',
-                    text: 'Table List'
-                },
+                // {
+                //     to: '/dashboard/table-list',
+                //     icon: 'mdi-clipboard-outline',
+                //     text: 'Table List'
+                // },
                 {
                     to: '/dashboard/maps',
                     icon: 'mdi-map-marker',
                     text: 'Maps'
                 },
-                {
-                    to: '/dashboard/notifications',
-                    icon: 'mdi-bell',
-                    text: 'Notifications'
-                },
+                // {
+                //     to: '/dashboard/notifications',
+                //     icon: 'mdi-bell',
+                //     text: 'Notifications'
+                // },
                 {
                     to: '/logout',
                     icon: 'mdi-logout',
