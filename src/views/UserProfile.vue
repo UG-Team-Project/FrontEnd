@@ -44,7 +44,7 @@
                                     >
                                         <v-text-field
                                                 label="First Name"
-                                                v-model="input.firstName"
+                                                v-model="input.name"
                                                 class="purple-input"/>
                                     </v-flex>
                                     <v-flex
@@ -53,7 +53,7 @@
                                     >
                                         <v-text-field
                                                 label="Last Name"
-                                                v-model="input.lastName"
+                                                v-model="input.surname"
                                                 class="purple-input"/>
                                     </v-flex>
                                     <v-flex
@@ -83,54 +83,67 @@
             </v-container>
         </v-card>
 
-      <v-snackbar
-              v-model="gotResponse"
-              :timeout="3000"
-              color="success"
-              multi-line="true"
-      >
-      Data saved successfully
-        <v-btn
-                color="green"
-                text
-                @click="gotResponse = false"
+        <v-snackbar
+                v-model="gotResponse"
+                :timeout="3000"
+                color="success"
+                multi-line
         >
-          Close
-        </v-btn>
-      </v-snackbar>
+            Data saved successfully
+            <v-btn
+                    color="green"
+                    text
+                    @click="gotResponse = false"
+            >
+                Close
+            </v-btn>
+        </v-snackbar>
     </v-app>
 </template>
 <script>
     import Drawer from '../components/core/Drawer';
 
     export default {
-      data() {
-        return {
-          input: {
-            username: 'asdasd',
-            email: '',
-            firstName: '',
-            lastName: '',
-            country: '',
-          },
-          gotResponse: false
-        }
-      },
+        data() {
+            return {
+                input: {
+                    username: '',
+                    email: '',
+                    name: '',
+                    surname: '',
+                    country: '',
+                },
+                gotResponse: false
+            }
+        },
         components: {
             Drawer
         },
         created() {
-          const details = this.$store.getters.userDetails;
-          this.input.username = details.username;
-          this.input.email = details.email;
-          this.input.firstName = details.firstName;
-          this.input.lastName = details.lastName;
-          this.input.country = details.country;
+            const details = this.$store.getters.userDetails;
+            window.console.warn('----------------------');
+            window.console.warn(this.$store.getters.userDetails);
+            this.input.username = details.username;
+            this.input.email = details.email;
+            this.input.name = details.name;
+            this.input.surname = details.surname;
+            this.input.country = details.country;
         },
         methods: {
-          saveDetails: function () {
-            this.gotResponse = true;
-          }
+            saveDetails: async function () {
+                const details = this.$store.getters.userDetails;
+                const response = await this.axios.put(this.$store.getters.updateUser(details.id), {
+                    'username': details.username,
+                    'email': this.input.email,
+                    'name': this.input.name,
+                    'surname': this.input.surname,
+                    'country': this.input.country
+                });
+                window.console.warn(response);
+                if (response.status === 200) {
+                    this.gotResponse = true;
+                }
+            }
         }
     };
 </script>

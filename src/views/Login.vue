@@ -81,11 +81,13 @@
         },
         methods: {
             checkForm: function (evt) {
-                this.axios.post(this.$store.getters.loginRoute, {
-                    "username": this.input.username,
-                    "password": this.input.password
-                }).then((response => {
-                    if (response.status !== 200 || this.input.username !== 'pchuck') {
+                // this.axios.get(this.$store.getters.loginRoute, {
+                //     "username": this.input.username,
+                //     "password": this.input.password
+                // }).then((response => {
+                this.axios.get(this.$store.getters.loginRoute)
+                .then((response => {
+                    if (response.status !== 200 || this.input.username !== 'quis') {
                         throw "Invalid Credentials";
                     }
                     this.$store.commit('login', response.data);

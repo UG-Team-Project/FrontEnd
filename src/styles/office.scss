@@ -16,22 +16,32 @@
       background-color: #bee5ff;
       filter: blur(1px);
     }
+  }
 
+  .north {
+    // default state
+  }
 
-    + .north {
-      // Default is north
-    }
+  .west {
+    transform: rotate(270deg);
+  }
 
-    + .west {
-      transform: rotate(270deg);
-    }
+  .east {
 
-    + .east {
-      transform: rotate(90deg);
-    }
+    transform: rotate(90deg);
+  }
 
-    + .south {
-      transform: rotate(180deg);
-    }
+  .south {
+    transform: rotate(180deg);
+  }
+
+  .dragged {
+    border: 1px solid red;
+    z-index: 1;
+  }
+}
+.editable-office {
+  svg {
+    border: 1px solid #2196f3;
   }
 }
