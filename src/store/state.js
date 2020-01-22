@@ -2,5 +2,6 @@
 
 export default {
     userDetails: {},
-    isLogged: false
+    isLogged: false,
+    updateUserPath: ''
 };
