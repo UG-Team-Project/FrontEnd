@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint",
     "start": "vue-cli-service serve"
   },
+
   "dependencies": {
     "@mdi/font": "^4.6.95",
     "@svgdotjs/svg.js": "^3.0.16",
