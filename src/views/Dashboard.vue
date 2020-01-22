@@ -210,6 +210,7 @@
                     pieceOfInfo.index = i;
                     pieceOfInfo.id = v.id;
                     pieceOfInfo.name = v.name;
+                    pieceOfInfo.userId = v.user.id;
                     const rotation = v.rotation || 'NORTH';
                     pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase();
                     pieceOfInfo.direction = rotation.toLowerCase();
@@ -303,8 +304,9 @@
                                 'y1Position': el.bounds.y1,
                                 'x2Position': el.bounds.x1,
                                 'y2Position': el.bounds.y2,
+                                'rotation': el.direction.toUpperCase(),
                                 'user': {
-                                    'username': el.detailedData.username
+                                    'id': el.userId
                                 }
                             });
                         }
