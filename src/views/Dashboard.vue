@@ -302,7 +302,7 @@
                                 'name': el.name,
                                 'x1Position': el.bounds.x1,
                                 'y1Position': el.bounds.y1,
-                                'x2Position': el.bounds.x1,
+                                'x2Position': el.bounds.x2,
                                 'y2Position': el.bounds.y2,
                                 'rotation': el.direction.toUpperCase(),
                                 'user': {
