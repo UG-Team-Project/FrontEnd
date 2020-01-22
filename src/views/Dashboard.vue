@@ -284,7 +284,6 @@
                 }
                 this.detailData = foundData;
                 this.showDetailInformation = true;
-                // window.console.log(element);
             },
             async makeOfficeEditable() {
                 if (this.isOfficeEditable) {
@@ -394,7 +393,6 @@
                     }
                     return 0;
                 };
-                // window.console.log(evt);
                 this.movable.currentElement.classList.remove('dragged');
                 const svgIndex = Number.parseInt(this.movable.currentElement.dataset.index);
                 const svgInfo = this.officeInfo[svgIndex];
@@ -414,37 +412,30 @@
                         continue;
                     }
                     const svgBounds = this.officeInfo[i].bounds;
-                    // window.console.log(currSvgBounds);
-                    // window.console.log(svgBounds.x1);
                     if (currSvgBounds.x1 === svgBounds.x1 && currSvgBounds.y1 === svgBounds.y1) {
-                        window.console.log('1');
                         isValidPosition = false;
                     } else if (
                         between(currSvgBounds.x1, svgBounds.x1, svgBounds.x2) &&
                         between(currSvgBounds.y1, svgBounds.y1, svgBounds.y2)
                     ) {
-                        window.console.log('2');
                         isValidPosition = false;
                     } else if (
                         between(currSvgBounds.x1 + svgInfo.width, svgBounds.x1, svgBounds.x2) &&
                         between(currSvgBounds.y1, svgBounds.y1, svgBounds.y2
                         )
                     ) {
-                        window.console.log('3');
                         isValidPosition = false;
                     } else if (
                         between(currSvgBounds.x1 + svgInfo.width, svgBounds.x1, svgBounds.x2) &&
                         between(currSvgBounds.y1 + svgInfo.height, svgBounds.y1, svgBounds.y2
                         )
                     ) {
-                        window.console.log('4');
                         isValidPosition = false;
                     } else if (
                         between(currSvgBounds.x1, svgBounds.x1, svgBounds.x2) &&
                         between(currSvgBounds.y1 + svgInfo.height, svgBounds.y1, svgBounds.y2
                         )
                     ) {
-                        window.console.log('5');
                         isValidPosition = false;
                     } else if (
                         currSvgBounds.y1 === svgBounds.y1 && currSvgBounds.y2 === svgBounds.y2 &&
@@ -460,23 +451,17 @@
                     if (!isValidPosition)
                         break;
                 }
-                window.console.warn('IsValidPosition', isValidPosition);
-                window.console.warn(this.officeInfo[svgIndex].bounds);
-                window.console.log('----------');
                 if (isValidPosition) {
                     svgInfo.bounds = currSvgBounds;
                 } else {
                     this.setElementPosition(this.movable.currentElement, svgInfo.bounds.x1, svgInfo.bounds.y1);
                 }
-                window.console.warn(currSvgBounds);
-                window.console.warn(this.officeInfo[svgIndex].bounds);
 
                 this.movable.currentElement = null;
             },
             setElementPosition(element, x, y) {
                 x = Math.floor(x);
                 y = Math.floor(y);
-                // window.console.log(y);
                 if (x <= this.movable.boundary.left) {
                     x = 0;
                 }
@@ -507,8 +492,6 @@
                     currentDirectionIndex++;
                 }
                 let nextDirection = directions[(currentDirectionIndex + 1) % 4];
-                window.console.log('-----------------');
-                window.console.log(currentDirectionIndex, nextDirection);
                 svg.classList.remove(directions[currentDirectionIndex]);
                 svg.classList.add(nextDirection);
 
