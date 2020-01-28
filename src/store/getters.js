@@ -11,7 +11,15 @@ export default {
         // return 'http://www.mocky.io/v2/5e27e4693200002a00d83d55'; // many
         return 'http://www.mocky.io/v2/5e2b1ba53200000d001c7089'; // 2
     },
-
+    // eslint-disable-next-line no-unused-vars
+    getRooms: () => (id) => {
+        return 'http://www.mocky.io/v2/5e3024f23200002c00858847'; // many
+        // return 'http://www.mocky.io/v2/5e30383032000050008588ff';
+    },
+    // eslint-disable-next-line no-unused-vars
+    getDoors: () => (id) => {
+        return 'http://www.mocky.io/v2/5e3061653200007500858a95';
+    },
     // eslint-disable-next-line no-unused-vars
     updateWorkstation: () => (id) => {
         // return 'https://ug-team-project.herokuapp.com/api/workstation/' + id;

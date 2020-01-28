@@ -1,8 +1,8 @@
 import Dashboard from '@/views/Dashboard';
 import UserProfile from '@/views/UserProfile';
-import TableList from '@/views/TableList';
 import Login from '@/views/Login';
 import Maps from '@/views/Maps';
+import Status from "@/views/Status";
 
 
 const routes = [
@@ -11,9 +11,9 @@ const routes = [
         path: '/dashboard',
         component: Dashboard
     },
-    { name: 'asd1', path: '/dashboard/user-profile', component: UserProfile },
-    { name: 'asd2', path: '/dashboard/table-list', component: TableList },
-    { name: 'asd3', path: '/dashboard/maps', component: Maps },
+    { name: 'user-profile', path: '/dashboard/user-profile', component: UserProfile },
+    { name: 'maps', path: '/dashboard/maps', component: Maps },
+    { name: 'status', path: '/dashboard/status', component: Status },
     {
         path: '/login',
         name: 'Login',

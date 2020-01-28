@@ -60,6 +60,15 @@
                         />
                     </div>
                 </template>
+                <template v-for="wall in rooms.walls">
+                    <div class="wall" v-bind:key="wall.index" v-bind:style="wall.cssStyle">
+                    </div>
+                </template>
+                <template v-for="door in rooms.doors">
+                    <div class="door" v-bind:key="door.index" v-bind:style="door.cssStyle">
+                    </div>
+                </template>
+
             </div>
             <div ref="container"></div>
             <div class="pb-12"/>
@@ -261,6 +270,13 @@
                         top: 0,
                         bottom: 1000,
                     }
+                },
+                rooms: {
+                    doorWidth: 100,
+                    wallWidth: 15,
+                    walls: [],
+                    doors: [],
+                    // some other properties
                 }
 
             };
@@ -274,10 +290,89 @@
         methods: {
             renderOffice: async function () {
                 this.loading = false;
-                const response = await this.axios.get(this.$store.getters.officeRoute);
-                response.data.forEach((v, i) => {
+                const officeResponse = await this.axios.get(this.$store.getters.officeRoute);
+                officeResponse.data.forEach((v, i) => {
                     this.addElemToOfficeInfo(v, i);
                 });
+                const roomResponse = await this.axios.get(this.$store.getters.getRooms(1));
+                const dataWalls = [];
+                // const ifPosIsZero = (p) => p===0 || p===1000?p:p+10;
+                const wallWidth = this.rooms.wallWidth;
+                roomResponse.data.forEach((v, i) => {
+                    let x1 = v.x1Position;
+                    let x2 = v.x2Position;
+                    let y1 = v.y1Position;
+                    let y2 = v.y2Position;
+
+                    if (x1 === 0) {
+                        x1 -= wallWidth;
+                    }
+                    if (y1 === 0) {
+                        y1 -= wallWidth;
+                    }
+
+                    const width = x2 - x1;
+                    const height = y2 - y1;
+
+                    const w1 = {
+                        index: i * 4,
+                        x1: x1,
+                        y1: y1,
+                        x2: x1 + width,
+                        y2: y1 + wallWidth,
+                    };
+                    w1.cssStyle = `top: ${w1.y1}px; left:${w1.x1}px; width: ${width}px; height: ${wallWidth}px;`;
+
+                    const w2 = {
+                        index: i * 4 + 1,
+                        x1: x1 + width,
+                        y1: y1,
+                        x2: x1 + width + wallWidth,
+                        y2: y1 + height,
+                    };
+                    w2.cssStyle = `top: ${w2.y1}px; left:${w2.x1}px; width: ${wallWidth}px; height: ${height}px;`;
+
+                    const w3 = {
+                        index: i * 4 + 2,
+                        x1: x1,
+                        y1: y1 + height,
+                        x2: x1 + width,
+                        y2: y1 + height + wallWidth,
+                    };
+                    w3.cssStyle = `top: ${w3.y1}px; left:${w3.x1}px; width: ${width}px; height: ${wallWidth}px;`;
+
+                    const w4 = {
+                        index: i * 4 + 3,
+                        x1: x1,
+                        y1: y1,
+                        x2: x1+wallWidth,
+                        y2: y1 + height,
+                    };
+                    w4.cssStyle = `top: ${w4.y1}px; left:${w4.x1}px; width: ${wallWidth}px; height: ${height}px;`;
+                    dataWalls.push(w1);
+                    dataWalls.push(w2);
+                    dataWalls.push(w3);
+                    dataWalls.push(w4);
+                });
+                this.rooms.walls = dataWalls;
+
+                const dataDoors = [];
+                const doorResponse = await this.axios.get(this.$store.getters.getDoors(1));
+
+                doorResponse.data.forEach((v, i) => {
+                    const d = {};
+                    d.index = 100*(i+1);
+                    d.cssStyle = `top: ${v.y1Position}px; left: ${v.x1Position}px;`;
+                    if (v.rotation === 'WEST' || v.rotation === 'EAST') {
+                        d.cssStyle += `width: ${wallWidth}px; height: ${this.rooms.doorWidth}px;`;
+                    } else {
+                        d.cssStyle += `height: ${wallWidth}px; width: ${this.rooms.doorWidth}px;`;
+                    }
+
+                    dataDoors.push(d);
+                });
+                this.rooms.doors = dataDoors;
+
                 this.loading = false;
             },
             addElemToOfficeInfo(v, i) {
@@ -474,7 +569,7 @@
                 // validate position
                 const currentX = getValOfProperty(this.movable.currentElement.style.left);
                 const currentY = getValOfProperty(this.movable.currentElement.style.top);
-                const bounds2 = {
+                const workspaceBounds = {
                     x1: currentX,
                     y1: currentY,
                     x2: currentX + svgInfo.width,
@@ -487,13 +582,23 @@
                         continue;
                     }
                     const bounds1 = this.officeInfo[i].bounds;
-                    isValidPosition = this.validatePosition(bounds1, bounds2);
+                    isValidPosition = this.validatePosition(bounds1, workspaceBounds);
 
                     if (!isValidPosition)
                         break;
                 }
+                if (isValidPosition) { // check walls
+                    for (let i = 0; i < this.rooms.walls.length; i++) {
+                        const bounds1 = this.rooms.walls[i];
+                        isValidPosition = this.validatePosition(bounds1, workspaceBounds);
+                        if (!isValidPosition)
+                            break;
+                    }
+                }
+
+
                 if (isValidPosition) {
-                    svgInfo.bounds = bounds2;
+                    svgInfo.bounds = workspaceBounds;
                 } else {
                     this.setElementPosition(this.movable.currentElement, svgInfo.bounds.x1, svgInfo.bounds.y1);
                 }
@@ -542,7 +647,7 @@
             assignUserToWorkspace() {
                 if (this.movable.insertElem.selectedUser.length === 0) {
                     this.showSnackbar("Invalid user.", "error", "red");
-                    return ;
+                    return;
                 }
                 this.movable.insertElem.showDialog = false;
                 const selectedUser = this.movable.insertElem.selectedUser[0];
@@ -566,7 +671,6 @@
                 }).catch(err => window.console.error(err));
 
 
-                window.console.warn(selectedUser);
             },
             // eslint-disable-next-line no-unused-vars
             insertElement(evt) {
@@ -579,7 +683,6 @@
                     x2: currX + this.movable.elementWidth,
                     y2: currY + this.movable.elementHeight,
                 };
-                window.console.log(bounds2);
                 let isValidPosition = true;
                 for (let elem of this.officeInfo) {
                     const bounds1 = elem.bounds;
@@ -603,6 +706,27 @@
             validatePosition(bounds1, sbounds2) {
                 let isValidPosition = true;
                 const between = (p, p1, p2) => p > p1 && p < p2;
+
+                if (
+                    between(bounds1.x1, sbounds2.x1, sbounds2.x2) &&
+                    between(sbounds2.y1, bounds1.y1, bounds1.y2)
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    between(bounds1.y1, sbounds2.y1, sbounds2.y2) &&
+                    between(sbounds2.x1, bounds1.x1, bounds1.x2)
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    between(bounds1.y1, sbounds2.y1, sbounds2.y2) &&
+                    between(bounds1.x1, sbounds2.x1, sbounds2.x2)
+                ) {
+                    isValidPosition = false;
+                } else
+
+
+
+
                 if (sbounds2.x1 === bounds1.x1 && sbounds2.y1 === bounds1.y1) {
                     isValidPosition = false;
                 } else if (
@@ -646,9 +770,9 @@
                 ) {
                     isValidPosition = false;
                 }
+
                 return isValidPosition;
             }
-
         },
     };
 </script>

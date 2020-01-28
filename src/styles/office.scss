@@ -1,12 +1,30 @@
+$WALL_COLOR: #2e1f27;
+$FLOOR: #f4c95d;
+
 .office-room {
-  border: 15px solid #cfcfcf;
+  border: 15px solid $WALL_COLOR;
   width: 1000px;
   height: 1000px;
   position: relative;
   box-sizing: content-box;
-  background-image: url("assets/office-background-1.jpg");
+  //background-image: url("assets/office-background-1.jpg");
+  background-color: #f4c95d;
   //background-size: 500px 500px;
   background-repeat: repeat;
+  .wall {
+    //border-color: #cfcfcf;
+    //border-style: solid;
+    position: absolute;
+    background: $WALL_COLOR;
+    //opacity: .3;
+    //box-sizing: content-box;
+    //background: #111;
+    //opacity: .3;
+  }
+  .door {
+    background: darken($FLOOR, 5);
+    position: absolute;
+  }
 
   .svg-workspace {
     box-sizing: border-box;
@@ -16,7 +34,7 @@
     &:hover {
       cursor: pointer;
       padding: 10px;
-      background-color: #bee5ff;
+      background-color: lighten($FLOOR, 10);
       filter: blur(1px);
     }
   }
