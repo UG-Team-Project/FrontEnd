@@ -25,7 +25,7 @@
                     >
                         <v-list-item
                                 v-for="{title, icon, subtitle, mode} in officeEditOptions" :key="title"
-                                @click="movable.mode = mode"
+                                @click="changeMode(mode)"
                         >
                             <v-list-item-icon>
                                 <v-icon class="blue--text" v-text="icon"/>
@@ -45,11 +45,13 @@
                     ref="officeCanvas"
                     @mousemove="handleMouseMove"
                     @mouseup="handleMouseUp"
+                    @mousedown="handleMouseDown($event, true)"
+
             >
                 <template v-for="({style, cssClass, index, id}) in officeInfo">
                     <div
                             v-bind:key="style"
-                            @mousedown="handleMouseDown"
+                            @mousedown="handleMouseDown($event, false)"
                             @mouseup="handleMouseUp"
                     >
                         <Desk v-bind:style="style" :class="cssClass"
@@ -133,6 +135,46 @@
                 Close
             </v-btn>
         </v-snackbar>
+        <v-dialog
+                v-model="movable.insertElem.showDialog"
+                max-width="750"
+        >
+            <v-card>
+                <v-card-title class="headline">Assign person to workspace</v-card-title>
+                <v-text-field
+                        v-model="movable.insertElem.search"
+                        append-icon="mdi-account-search"
+                        label="Search"
+                        single-line
+                        hide-details
+                        style="padding: 5px;"
+                />
+                <v-data-table
+                        v-model="movable.insertElem.selectedUser"
+                        :headers="movable.insertElem.headers"
+                        :items="movable.insertElem.availableUsers"
+                        single-select
+                        item-key="username"
+                        :loading="movable.insertElem.loadingData"
+                        loading-text="Loading users... Please wait"
+                        show-select
+                        :search="movable.insertElem.search"
+                        class="elevation-1"
+                >
+                </v-data-table>
+
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                            class="blue white--text"
+                            text
+                            @click="assignUserToWorkspace"
+                    >
+                        Assign
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-app>
 </template>
 <script>
@@ -167,6 +209,12 @@
                         'icon': 'mdi-account-remove',
                         'mode': 'remove',
                         'subtitle': 'Remove element for the office'
+                    },
+                    {
+                        'title': 'Add',
+                        'icon': 'mdi-plus',
+                        'mode': 'add',
+                        'subtitle': 'Add new workspace'
                     }
                 ],
                 isOfficeEditable: false,
@@ -179,8 +227,31 @@
                 showDetailInformation: false,
                 detailData: [],
                 movable: {
+                    insertElem: {
+                        coords: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 0
+                        },
+                        showDialog: false,
+                        loadingData: false,
+                        search: '',
+                        selectedUser: [],
+                        availableUsers: [],
+                        headers: [
+                            {text: "Username", value: 'username'},
+                            {text: "Name", value: 'name'},
+                            {text: "Surname", value: 'surname'},
+                            {text: "Email", value: 'email'},
+                            {text: "Country", value: 'country'},
+                        ]
+
+                    },
+                    elementWidth: 100,
+                    elementHeight: 100,
                     removeElementDialog: false,
-                    mode: '',
+                    mode: null,
                     currentElement: null,
                     offsetLeft: 0,
                     offsetTop: 0,
@@ -204,68 +275,69 @@
             renderOffice: async function () {
                 this.loading = false;
                 const response = await this.axios.get(this.$store.getters.officeRoute);
-                const officeInfo = [];
                 response.data.forEach((v, i) => {
-                    const pieceOfInfo = {};
-                    pieceOfInfo.index = i;
-                    pieceOfInfo.id = v.id;
-                    pieceOfInfo.name = v.name;
-                    pieceOfInfo.userId = v.user.id;
-                    const rotation = v.rotation || 'NORTH';
-                    pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase();
-                    pieceOfInfo.direction = rotation.toLowerCase();
-                    pieceOfInfo.style = 'width: 200px;';
-                    const x1 = v.x1Position, y1 = v.y1Position, x2 = v.x2Position, y2 = v.y2Position;
-                    let width = 0;
-                    let height = 0;
-                    if (rotation === 'NORTH' || rotation === 'SOUTH') {
-                        width = x2 - x1;
-                        height = y2 - y1;
-                    } else if (rotation === 'WEST' || rotation === 'EAST') {
-                        width = y2 - y1;
-                        height = x2 - x1;
-                    }
-                    pieceOfInfo.style = `left: ${x1}; top: ${y1}; width: ${width}; height: ${height}`;
-                    pieceOfInfo.width = width;
-                    pieceOfInfo.height = height;
-                    pieceOfInfo.bounds = {
-                        x1,
-                        x2,
-                        y1,
-                        y2
-                    };
-
-                    pieceOfInfo.detailedData = [
-                        {
-                            key: 'name',
-                            value: v.name
-                        },
-                        {
-                            key: 'username',
-                            value: v.user.email.split('@')[0]
-                        },
-                        {
-                            key: 'email',
-                            value: v.user.email
-                        },
-                        {
-                            key: 'first name',
-                            value: v.user.name
-                        },
-                        {
-                            key: 'surname',
-                            value: v.user.surname
-                        },
-                        {
-                            key: 'country',
-                            value: v.user.country
-                        },
-                    ];
-
-                    officeInfo.push(pieceOfInfo);
+                    this.addElemToOfficeInfo(v, i);
                 });
-                this.officeInfo = officeInfo;
                 this.loading = false;
+            },
+            addElemToOfficeInfo(v, i) {
+                const pieceOfInfo = {};
+                pieceOfInfo.index = i;
+                pieceOfInfo.id = v.id;
+                pieceOfInfo.name = v.name;
+                pieceOfInfo.userId = v.user.id;
+                const rotation = v.rotation || 'NORTH';
+                pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase();
+                pieceOfInfo.direction = rotation.toLowerCase();
+                pieceOfInfo.style = 'width: 200px;';
+                const x1 = v.x1Position, y1 = v.y1Position, x2 = v.x2Position, y2 = v.y2Position;
+                let width = 0;
+                let height = 0;
+                if (rotation === 'NORTH' || rotation === 'SOUTH') {
+                    width = x2 - x1;
+                    height = y2 - y1;
+                } else if (rotation === 'WEST' || rotation === 'EAST') {
+                    width = y2 - y1;
+                    height = x2 - x1;
+                }
+                pieceOfInfo.style = `left: ${x1}; top: ${y1}; width: ${width}; height: ${height}`;
+                pieceOfInfo.width = width;
+                pieceOfInfo.height = height;
+                pieceOfInfo.bounds = {
+                    x1,
+                    x2,
+                    y1,
+                    y2
+                };
+
+                pieceOfInfo.detailedData = [
+                    {
+                        key: 'name',
+                        value: v.name
+                    },
+                    {
+                        key: 'username',
+                        value: v.username
+                    },
+                    {
+                        key: 'email',
+                        value: v.user.email
+                    },
+                    {
+                        key: 'first name',
+                        value: v.user.name
+                    },
+                    {
+                        key: 'surname',
+                        value: v.user.surname
+                    },
+                    {
+                        key: 'country',
+                        value: v.user.country
+                    },
+                ];
+
+                this.officeInfo.push(pieceOfInfo);
             },
             showSnackbar(message, type, color) {
                 this.snackbar.message = message;
@@ -286,11 +358,15 @@
                 this.detailData = foundData;
                 this.showDetailInformation = true;
             },
+            changeMode(mode) {
+                this.movable.mode = mode;
+                this.movable.currentElement = null;
+            },
             async makeOfficeEditable() {
                 if (this.isOfficeEditable) {
                     this.loading = true;
                     this.btnEditText = 'Edit office';
-                    this.movable.mode = '';
+                    this.movable.mode = null;
                     this.isOfficeEditable = false;
                     this.$refs.officeCanvas.classList.remove('editable-office');
 
@@ -341,19 +417,21 @@
                     this.showSnackbar('Error occurred while removing element', 'error', 'red');
                 }
             },
-            handleMouseDown(evt) {
+            handleMouseDown(evt, isMainContainer) {
                 if (!this.isOfficeEditable) return;
+                if (this.movable.mode == null) return;
                 const currentElement = this.getSvgElementFromEvent(evt);
-                if (!currentElement) {
-                    return;
-                }
+
                 this.movable.currentElement = currentElement;
-                if (this.movable.mode === 'movable') {
+
+                if (this.movable.mode === 'movable' && currentElement) {
                     this.modeMovable(evt);
-                } else if (this.movable.mode === 'rotate') {
+                } else if (this.movable.mode === 'rotate' && currentElement && !isMainContainer) {
                     this.rotateElement(evt);
-                } else if (this.movable.mode === 'remove') {
+                } else if (this.movable.mode === 'remove' && currentElement && !isMainContainer) {
                     this.movable.removeElementDialog = true;
+                } else if (this.movable.mode === 'add' && isMainContainer) {
+                    this.insertElement(evt);
                 }
             },
             modeMovable(evt) {
@@ -364,22 +442,17 @@
                 this.movable.boundary.tright = this.movable.boundary.right - svgBoundary.width;
                 this.movable.boundary.tbottom = this.movable.boundary.bottom - svgBoundary.height;
                 this.movable.currentElement.classList.add('dragged');
-                this.movable.oldTop = this.movable.currentElement.style.top;
-                this.movable.oldLeft = this.movable.currentElement.style.left;
             },
             // eslint-disable-next-line no-unused-vars
             handleMouseMove(evt) {
                 if (!this.isOfficeEditable) return;
-                if (this.movable.mode !== 'movable') {
-                    return;
-                }
-                if (!this.movable.currentElement) {
-                    return;
-                }
+                if (this.movable.mode !== 'movable') return;
+                if (!this.movable.currentElement) return;
 
                 const ce = this.movable.currentElement;
                 const currentX = evt.clientX - this.movable.offsetLeft;
                 const currentY = evt.clientY - this.movable.offsetTop;
+
                 this.setElementPosition(ce, currentX, currentY);
             },
             // eslint-disable-next-line no-unused-vars
@@ -401,60 +474,26 @@
                 // validate position
                 const currentX = getValOfProperty(this.movable.currentElement.style.left);
                 const currentY = getValOfProperty(this.movable.currentElement.style.top);
-                const currSvgBounds = {
+                const bounds2 = {
                     x1: currentX,
                     y1: currentY,
                     x2: currentX + svgInfo.width,
                     y2: currentY + svgInfo.height,
                 };
-                const between = (p, p1, p2) => p > p1 && p < p2;
+
                 let isValidPosition = true;
                 for (let i = 0; i < this.officeInfo.length; i++) {
                     if (i === svgIndex) {
                         continue;
                     }
-                    const svgBounds = this.officeInfo[i].bounds;
-                    if (currSvgBounds.x1 === svgBounds.x1 && currSvgBounds.y1 === svgBounds.y1) {
-                        isValidPosition = false;
-                    } else if (
-                        between(currSvgBounds.x1, svgBounds.x1, svgBounds.x2) &&
-                        between(currSvgBounds.y1, svgBounds.y1, svgBounds.y2)
-                    ) {
-                        isValidPosition = false;
-                    } else if (
-                        between(currSvgBounds.x1 + svgInfo.width, svgBounds.x1, svgBounds.x2) &&
-                        between(currSvgBounds.y1, svgBounds.y1, svgBounds.y2
-                        )
-                    ) {
-                        isValidPosition = false;
-                    } else if (
-                        between(currSvgBounds.x1 + svgInfo.width, svgBounds.x1, svgBounds.x2) &&
-                        between(currSvgBounds.y1 + svgInfo.height, svgBounds.y1, svgBounds.y2
-                        )
-                    ) {
-                        isValidPosition = false;
-                    } else if (
-                        between(currSvgBounds.x1, svgBounds.x1, svgBounds.x2) &&
-                        between(currSvgBounds.y1 + svgInfo.height, svgBounds.y1, svgBounds.y2
-                        )
-                    ) {
-                        isValidPosition = false;
-                    } else if (
-                        currSvgBounds.y1 === svgBounds.y1 && currSvgBounds.y2 === svgBounds.y2 &&
-                        between(currSvgBounds.x1, svgBounds.x1, svgBounds.x2)
-                    ) {
-                        isValidPosition = false;
-                    } else if (
-                        currSvgBounds.x1 === svgBounds.x1 && currSvgBounds.x2 === svgBounds.x2 &&
-                        between(currSvgBounds.y1, svgBounds.y1, svgBounds.y2)
-                    ) {
-                        isValidPosition = false;
-                    }
+                    const bounds1 = this.officeInfo[i].bounds;
+                    isValidPosition = this.validatePosition(bounds1, bounds2);
+
                     if (!isValidPosition)
                         break;
                 }
                 if (isValidPosition) {
-                    svgInfo.bounds = currSvgBounds;
+                    svgInfo.bounds = bounds2;
                 } else {
                     this.setElementPosition(this.movable.currentElement, svgInfo.bounds.x1, svgInfo.bounds.y1);
                 }
@@ -499,7 +538,117 @@
 
                 const svgId = svg.dataset.index;
                 this.officeInfo[svgId].direction = nextDirection;
+            },
+            assignUserToWorkspace() {
+                if (this.movable.insertElem.selectedUser.length === 0) {
+                    this.showSnackbar("Invalid user.", "error", "red");
+                    return ;
+                }
+                this.movable.insertElem.showDialog = false;
+                const selectedUser = this.movable.insertElem.selectedUser[0];
+                const coords = this.movable.insertElem.coords;
+                this.movable.insertElem.selectedUser = [];
+                const data = {
+                    name: selectedUser.name + "'s desk",
+                    user: selectedUser,
+                    "rotation": "NORTH",
+                    "x1Position": coords.x1,
+                    "y1Position": coords.y1,
+                    "x2Position": coords.x2,
+                    "y2Position": coords.y2,
+                };
+                this.axios.post(this.$store.getters.officeRoute, data).then(response => {
+                    if (response.status > 300) {
+                        throw new Error("Invalid data" + response.status);
+                    }
+                    this.addElemToOfficeInfo(data, this.officeInfo.length);
+                    this.showSnackbar("Workspace added successfully.", "success", "green");
+                }).catch(err => window.console.error(err));
+
+
+                window.console.warn(selectedUser);
+            },
+            // eslint-disable-next-line no-unused-vars
+            insertElement(evt) {
+                const currX = evt.offsetX;
+                const currY = evt.offsetY;
+
+                const bounds2 = {
+                    x1: currX,
+                    y1: currY,
+                    x2: currX + this.movable.elementWidth,
+                    y2: currY + this.movable.elementHeight,
+                };
+                window.console.log(bounds2);
+                let isValidPosition = true;
+                for (let elem of this.officeInfo) {
+                    const bounds1 = elem.bounds;
+                    isValidPosition = this.validatePosition(bounds1, bounds2);
+                    if (!isValidPosition) {
+                        this.showSnackbar("Invalid position of workspace", "error", "red");
+                        break;
+                    }
+                }
+                if (isValidPosition) {
+                    this.movable.insertElem.coords = bounds2;
+                    this.movable.insertElem.loadingData = true;
+                    this.movable.insertElem.showDialog = true;
+                    this.axios.get(this.$store.getters.availableUser + "?mocky-delay=1000ms").then(response => {
+                        this.movable.insertElem.availableUsers = response.data;
+                        this.movable.insertElem.loadingData = false;
+                    }).catch(err => window.console.error(err));
+                }
+
+            },
+            validatePosition(bounds1, sbounds2) {
+                let isValidPosition = true;
+                const between = (p, p1, p2) => p > p1 && p < p2;
+                if (sbounds2.x1 === bounds1.x1 && sbounds2.y1 === bounds1.y1) {
+                    isValidPosition = false;
+                } else if (
+                    between(sbounds2.x1, bounds1.x1, bounds1.x2) &&
+                    between(sbounds2.y1, bounds1.y1, bounds1.y2)
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    between(sbounds2.x2, bounds1.x1, bounds1.x2) &&
+                    between(sbounds2.y1, bounds1.y1, bounds1.y2
+                    )
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    between(sbounds2.x2, bounds1.x1, bounds1.x2) &&
+                    between(sbounds2.y2, bounds1.y1, bounds1.y2
+                    )
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    between(sbounds2.x1, bounds1.x1, bounds1.x2) &&
+                    between(sbounds2.y2, bounds1.y1, bounds1.y2
+                    )
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    sbounds2.y1 === bounds1.y1 && sbounds2.y2 === bounds1.y2 &&
+                    (between(sbounds2.x1, bounds1.x1, bounds1.x2) || between(sbounds2.x2, bounds1.x1, bounds1.x2))
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    sbounds2.x1 === bounds1.x1 && sbounds2.x2 === bounds1.x2 &&
+                    (between(sbounds2.y1, bounds1.y1, bounds1.y2) || between(sbounds2.y2, bounds1.y1, bounds1.y2))
+                ) {
+                    isValidPosition = false;
+                } else if (
+                    sbounds2.x1 < this.movable.boundary.left ||
+                    sbounds2.x2 > this.movable.boundary.right ||
+                    sbounds2.y1 < this.movable.boundary.top ||
+                    sbounds2.y1 > this.movable.boundary.bottom
+                ) {
+                    isValidPosition = false;
+                }
+                return isValidPosition;
             }
+
         },
     };
 </script>

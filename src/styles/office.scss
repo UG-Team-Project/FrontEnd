@@ -4,6 +4,9 @@
   height: 1000px;
   position: relative;
   box-sizing: content-box;
+  background-image: url("assets/office-background-1.jpg");
+  //background-size: 500px 500px;
+  background-repeat: repeat;
 
   .svg-workspace {
     box-sizing: border-box;
