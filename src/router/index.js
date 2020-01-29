@@ -17,7 +17,13 @@ router.beforeEach((to, from, next) => {
             next('/dashboard')
         } else if (to.fullPath === '/logout') {
             store.commit('logout');
-            next('/login');
+            const userData = store.state.userDetails;
+            userData['status'] = 'OFFLINE';
+            Vue.axios.put(store.getters.changeStatusRoute, userData).then(response => {
+                if (response.status < 400) {
+                    next('/login');
+                }
+            });
         } else {
             next()
         }

@@ -101,7 +101,14 @@
                     }
                     this.$store.commit('login', response.data);
                     this.$store.state.officeData = response.data.office;
-                    this.$router.push({name: 'dashboard-index'});
+
+                    const userData = this.$store.state.userDetails;
+                    userData['status'] = 'ONLINE';
+                    return this.axios.put(this.$store.getters.changeStatusRoute, userData);
+                }).then((response) => {
+                    if (response.status < 400) {
+                        this.$router.push({name: 'dashboard-index'});
+                    }
                 }).catch((err) => {
                     window.console.error(err);
                     this.areInvalidCredentials = true;

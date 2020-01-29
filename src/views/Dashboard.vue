@@ -14,6 +14,9 @@
         <v-card
                 class="mx-auto">
             <div class="pt-12"/>
+            <v-btn class="orange white--text v-btn--block" @click="refreshOffice">Refresh office
+            </v-btn>
+            <hr />
             <v-btn v-if="isUserManager" class="blue white--text v-btn--block" @click="makeOfficeEditable">{{ btnEditText
                 }}
             </v-btn>
@@ -289,9 +292,17 @@
             Drawer, Desk
         },
         created() {
+            this.isUserManager = this.$store.state.userDetails.role.name === 'MANAGER';
             this.renderOffice();
         },
         methods: {
+            refreshOffice() {
+                this.officeInfo = [];
+                this.detailData = [];
+                this.rooms.walls = [];
+                this.rooms.doors = [];
+                this.renderOffice();
+            },
             renderOffice: async function () {
                 this.loading = false;
                 const officeResponse = await this.axios.get(this.$store.getters.officeRoute);
@@ -387,7 +398,11 @@
                 pieceOfInfo.name = v.name;
                 pieceOfInfo.userId = v.user.id;
                 const rotation = v.rotation || 'NORTH';
-                pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase() + " " + v.user.status.toLowerCase();
+                if (v.user.id === this.$store.state.userDetails.id) {
+                    pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase() + " " + v.user.status.toLowerCase() + " current";
+                } else {
+                    pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase() + " " + v.user.status.toLowerCase();
+                }
                 pieceOfInfo.direction = rotation.toLowerCase();
                 pieceOfInfo.style = 'width: 200px;';
                 const x1 = v.x1Position, y1 = v.y1Position, x2 = v.x2Position, y2 = v.y2Position;
