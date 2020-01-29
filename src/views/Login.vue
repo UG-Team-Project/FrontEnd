@@ -24,7 +24,7 @@
                             </v-toolbar>
                             <v-card-text>
                                 <v-form
-                                        @submit="checkForm"
+                                        @submit.prevent="checkForm"
                                 >
                                     <v-text-field
                                             v-model="input.username"
@@ -34,7 +34,6 @@
                                             type="text"
                                             required
                                     />
-
                                     <v-text-field
                                             v-model="input.password"
                                             id="password"
@@ -80,22 +79,33 @@
             };
         },
         methods: {
-            checkForm: function (evt) {
+            checkForm: function () {
                 // this.axios.get(this.$store.getters.loginRoute, {
                 //     "username": this.input.username,
                 //     "password": this.input.password
                 // }).then((response => {
-                this.axios.get(this.$store.getters.loginRoute)
-                .then((response => {
-                    if (response.status !== 200 || this.input.username !== 'quis') {
+                this.axios.post(this.$store.getters.loginRoute, {
+                    username: this.input.username,
+                    password: this.input.password
+                }).then((response => {
+                    if (response.status !== 200) {
                         throw "Invalid Credentials";
                     }
+                    const token = response.data;
+                    this.$store.state.token = token;
+                    this.axios.defaults.headers.common['Authorization'] = token;
+                    return this.axios.get(this.$store.getters.userDetailsRoute(this.input.username))
+                })).then((response) => {
+                    if (response.status >= 400) {
+                        throw "Invalid user details";
+                    }
                     this.$store.commit('login', response.data);
+                    this.$store.state.officeData = response.data.office;
                     this.$router.push({name: 'dashboard-index'});
-                })).catch(() => {
+                }).catch((err) => {
+                    window.console.error(err);
                     this.areInvalidCredentials = true;
                 });
-                evt.preventDefault();
             }
         },
         props: {

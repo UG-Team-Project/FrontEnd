@@ -67,7 +67,8 @@
             Drawer
         },
         created() {
-            this.setStatus(null);
+            const status = this.$store.state.userDetails.status;
+            this.setStatus(status);
         },
         methods: {
             setStatus(status) {
@@ -90,7 +91,15 @@
                 this.currentStatus = currentStatus;
             },
             changeStatus() {
-                this.setStatus(this.statusForm);
+                const userData = this.$store.state.userDetails;
+                userData['status'] = this.statusForm;
+                this.axios.put(this.$store.getters.changeStatusRoute, userData).then((response) => {
+                    if (response.status < 400) {
+                        this.setStatus(this.statusForm);
+                    }
+                }).catch(err => {
+                    window.console.error(err);
+                });
             }
         }
     };

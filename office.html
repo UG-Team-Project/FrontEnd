@@ -78,10 +78,12 @@
     addEventListener("mousemove", (evt) => {
         cursorPosElem.innerHTML = evt.offsetX + " " + evt.offsetY;
     });
-
+    fetch('https://ug-team-project.herokuapp.com/api/office/1/rooms').then(response => {
+        window.console.log(response.data);
+    });
     setTimeout(() => {
         location.reload();
-    }, 1000);
+    }, 5*60*1000);
 </script>
 </body>
 </html>

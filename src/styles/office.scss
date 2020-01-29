@@ -11,6 +11,19 @@ $FLOOR: #f4c95d;
   background-color: #f4c95d;
   //background-size: 500px 500px;
   background-repeat: repeat;
+  border-radius: 5px;
+  .offline {
+    box-shadow: inset 0 0 30px 0px #F44336;
+  }
+
+  .online {
+    box-shadow: inset 0 0 30px 0px #4CAF50;
+  }
+
+  .busy {
+    box-shadow: inset 0 0 30px 0px #ff9800;
+  }
+
   .wall {
     //border-color: #cfcfcf;
     //border-style: solid;
@@ -21,12 +34,14 @@ $FLOOR: #f4c95d;
     //background: #111;
     //opacity: .3;
   }
+
   .door {
     background: darken($FLOOR, 5);
     position: absolute;
   }
 
   .svg-workspace {
+    border-radius: 3px;
     box-sizing: border-box;
     position: absolute;
     padding: 10px;
@@ -61,6 +76,7 @@ $FLOOR: #f4c95d;
     z-index: 1;
   }
 }
+
 .editable-office {
   svg {
     border: 1px solid #2196f3;

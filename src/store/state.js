@@ -2,6 +2,8 @@
 
 export default {
     userDetails: {},
-    isLogged: true,
-    updateUserPath: ''
+    isLogged: false,
+    updateUserPath: '',
+    token: '',
+    officeData: {}
 };

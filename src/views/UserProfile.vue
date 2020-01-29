@@ -132,13 +132,11 @@
         methods: {
             saveDetails: async function () {
                 const details = this.$store.getters.userDetails;
-                const response = await this.axios.put(this.$store.getters.updateUser(details.id), {
-                    'username': details.username,
-                    'email': this.input.email,
-                    'name': this.input.name,
-                    'surname': this.input.surname,
-                    'country': this.input.country
-                });
+                details.email = this.input.email;
+                details.name = this.input.name;
+                details.surname = this.input.surname;
+                details.country = this.input.country;
+                const response = await this.axios.put(this.$store.getters.updateUser, details);
                 window.console.warn(response);
                 if (response.status === 200) {
                     this.gotResponse = true;

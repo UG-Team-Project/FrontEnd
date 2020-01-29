@@ -48,6 +48,18 @@
                 ]
             }
         },
+        created() {
+            const lat = this.$store.state.officeData.lat;
+            const lng = this.$store.state.officeData.lon;
+            this.center = {
+                lat: lat,
+                lng: lng
+            };
+            this.markers[0].position = {
+                lat: lat,
+                lng: lng
+            };
+        },
         components: {
             Drawer
         }

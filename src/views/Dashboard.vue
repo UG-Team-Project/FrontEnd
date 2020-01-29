@@ -14,7 +14,9 @@
         <v-card
                 class="mx-auto">
             <div class="pt-12"/>
-            <v-btn class="blue white--text v-btn--block" @click="makeOfficeEditable">{{ btnEditText }}</v-btn>
+            <v-btn v-if="isUserManager" class="blue white--text v-btn--block" @click="makeOfficeEditable">{{ btnEditText
+                }}
+            </v-btn>
             <v-card
                     class="mx-auto"
                     v-if="isOfficeEditable"
@@ -56,6 +58,7 @@
                     >
                         <Desk v-bind:style="style" :class="cssClass"
                               v-bind:data-index="index"
+                              v-bind:data-id="id"
                               v-on:click.native="showDetails(id)"
                         />
                     </div>
@@ -226,6 +229,7 @@
                         'subtitle': 'Add new workspace'
                     }
                 ],
+                isUserManager: true,
                 isOfficeEditable: false,
                 btnEditText: 'Edit office',
                 loading: false,
@@ -294,7 +298,7 @@
                 officeResponse.data.forEach((v, i) => {
                     this.addElemToOfficeInfo(v, i);
                 });
-                const roomResponse = await this.axios.get(this.$store.getters.getRooms(1));
+                const roomResponse = await this.axios.get(this.$store.getters.getRooms);
                 const dataWalls = [];
                 // const ifPosIsZero = (p) => p===0 || p===1000?p:p+10;
                 const wallWidth = this.rooms.wallWidth;
@@ -345,7 +349,7 @@
                         index: i * 4 + 3,
                         x1: x1,
                         y1: y1,
-                        x2: x1+wallWidth,
+                        x2: x1 + wallWidth,
                         y2: y1 + height,
                     };
                     w4.cssStyle = `top: ${w4.y1}px; left:${w4.x1}px; width: ${wallWidth}px; height: ${height}px;`;
@@ -357,11 +361,11 @@
                 this.rooms.walls = dataWalls;
 
                 const dataDoors = [];
-                const doorResponse = await this.axios.get(this.$store.getters.getDoors(1));
+                const doorResponse = await this.axios.get(this.$store.getters.getDoors);
 
                 doorResponse.data.forEach((v, i) => {
                     const d = {};
-                    d.index = 100*(i+1);
+                    d.index = 100 * (i + 1);
                     d.cssStyle = `top: ${v.y1Position}px; left: ${v.x1Position}px;`;
                     if (v.rotation === 'WEST' || v.rotation === 'EAST') {
                         d.cssStyle += `width: ${wallWidth}px; height: ${this.rooms.doorWidth}px;`;
@@ -377,12 +381,13 @@
             },
             addElemToOfficeInfo(v, i) {
                 const pieceOfInfo = {};
+                pieceOfInfo.response = v;
                 pieceOfInfo.index = i;
                 pieceOfInfo.id = v.id;
                 pieceOfInfo.name = v.name;
                 pieceOfInfo.userId = v.user.id;
                 const rotation = v.rotation || 'NORTH';
-                pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase();
+                pieceOfInfo.cssClass = "svg-workspace " + rotation.toLowerCase() + " " + v.user.status.toLowerCase();
                 pieceOfInfo.direction = rotation.toLowerCase();
                 pieceOfInfo.style = 'width: 200px;';
                 const x1 = v.x1Position, y1 = v.y1Position, x2 = v.x2Position, y2 = v.y2Position;
@@ -412,11 +417,15 @@
                     },
                     {
                         key: 'username',
-                        value: v.username
+                        value: v.user.username
                     },
                     {
                         key: 'email',
                         value: v.user.email
+                    },
+                    {
+                        key: 'status',
+                        value: v.user.status
                     },
                     {
                         key: 'first name',
@@ -465,25 +474,41 @@
                     this.isOfficeEditable = false;
                     this.$refs.officeCanvas.classList.remove('editable-office');
 
+                    // const tempData = [];
                     // await this.axios.delete(this.$store.getters.updateWorkstation(el.id));
                     try {
                         for (let el of this.officeInfo) {
-                            await this.axios.put(this.$store.getters.updateWorkstation(el.id), {
-                                'id': el.id,
-                                'name': el.name,
-                                'x1Position': el.bounds.x1,
-                                'y1Position': el.bounds.y1,
-                                'x2Position': el.bounds.x2,
-                                'y2Position': el.bounds.y2,
-                                'rotation': el.direction.toUpperCase(),
-                                'user': {
-                                    'id': el.userId
-                                }
-                            });
+                            const data = el.response;
+                            data['x1Position'] = el.bounds.x1;
+                            data['y1Position'] = el.bounds.y1;
+                            data['x2Position'] = el.bounds.x2;
+                            data['y2Position'] = el.bounds.y2;
+                            data['rotation'] = el.direction.toUpperCase();
+                            // window.console.log(data);
+                            await this.axios.put(this.$store.getters.updateWorkstation(el.id), data);
+                            // tempData.push({
+                            //     // "id": data.id,
+                            //     "name": data.name,
+                            //     "rotation": data.rotation,
+                            //     "x1Position": data.x1Position,
+                            //     "y1Position": data.y1Position,
+                            //     "x2Position": data.x2Position,
+                            //     "y2Position": data.y2Position,
+                            //     "user": {
+                            //         "id": data.user.id
+                            //     },
+                            //     "office": {
+                            //         "id": this.$store.state.officeData.id
+                            //     }
+                            // });
                         }
+                        // window.console.warn(tempData);
+                        // window.console.warn(JSON.stringify(tempData));
+
                         this.showSnackbar('Office updated successfully', 'success', 'green');
                     } catch (e) {
                         this.showSnackbar('Error occurred while updating the office', 'error', 'red');
+                        window.console.error(e);
                     } finally {
                         this.loading = false;
                     }
@@ -503,8 +528,9 @@
             async removeElementFromOffice() {
                 this.movable.removeElementDialog = false;
                 const el = this.movable.currentElement;
+                const id = el.dataset.id;
                 try {
-                    await this.axios.delete(this.$store.getters.updateWorkstation(el.id));
+                    await this.axios.delete(this.$store.getters.updateWorkstation(id));
                     this.showSnackbar('Element removed successfully', 'success', 'green');
                     const svgIndex = Number.parseInt(this.movable.currentElement.dataset.index);
                     this.officeInfo.splice(svgIndex, 1);
@@ -649,6 +675,7 @@
                     this.showSnackbar("Invalid user.", "error", "red");
                     return;
                 }
+                window.console.log(this.movable.insertElem.selectedUser);
                 this.movable.insertElem.showDialog = false;
                 const selectedUser = this.movable.insertElem.selectedUser[0];
                 const coords = this.movable.insertElem.coords;
@@ -656,13 +683,17 @@
                 const data = {
                     name: selectedUser.name + "'s desk",
                     user: selectedUser,
+                    office: {
+                        id: this.$store.state.officeData.id
+                    },
                     "rotation": "NORTH",
                     "x1Position": coords.x1,
                     "y1Position": coords.y1,
                     "x2Position": coords.x2,
                     "y2Position": coords.y2,
                 };
-                this.axios.post(this.$store.getters.officeRoute, data).then(response => {
+                this.axios.post(this.$store.getters.insertWorkstation, data).then(response => {
+                    window.console.log('asdfasdfasdfasd');
                     if (response.status > 300) {
                         throw new Error("Invalid data" + response.status);
                     }
@@ -696,12 +727,11 @@
                     this.movable.insertElem.coords = bounds2;
                     this.movable.insertElem.loadingData = true;
                     this.movable.insertElem.showDialog = true;
-                    this.axios.get(this.$store.getters.availableUser + "?mocky-delay=1000ms").then(response => {
+                    this.axios.get(this.$store.getters.availableUser).then(response => {
                         this.movable.insertElem.availableUsers = response.data;
                         this.movable.insertElem.loadingData = false;
                     }).catch(err => window.console.error(err));
                 }
-
             },
             validatePosition(bounds1, sbounds2) {
                 let isValidPosition = true;
@@ -722,12 +752,7 @@
                     between(bounds1.x1, sbounds2.x1, sbounds2.x2)
                 ) {
                     isValidPosition = false;
-                } else
-
-
-
-
-                if (sbounds2.x1 === bounds1.x1 && sbounds2.y1 === bounds1.y1) {
+                } else if (sbounds2.x1 === bounds1.x1 && sbounds2.y1 === bounds1.y1) {
                     isValidPosition = false;
                 } else if (
                     between(sbounds2.x1, bounds1.x1, bounds1.x2) &&
